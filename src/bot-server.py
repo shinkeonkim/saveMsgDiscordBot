@@ -27,7 +27,11 @@ async def on_ready():
 # 봇이 새로운 메시지를 수신했을 때의 이벤트
 @client.event
 async def on_message(message):
-    f = open("record.txt", 'a',  -1, "utf-16")
+    with open("../data/record.json", "r", encoding="utf-8") as records:
+        records = json.load(records)
+    
+    msg_list = records["msg_list"]
+    print(msg_list)
     
     if message.author.bot: #만약 메시지를 보낸사람이 봇일 경우
         return None
@@ -35,22 +39,24 @@ async def on_message(message):
     #메시지를 보낸사람의 ID
     id = message.author.id 
     name = message.author.name
-    # print(id)
     tm = time.localtime(time.time())
     timestring = time.strftime('%Y-%m-%d %I:%M:%S %p', tm)
 
-    data = u"---------------\n"
-    data += u"이름: {}\n".format(name)
-    data += u"채널: {}\n".format(message.channel.name)
-    data += u"내용: {}\n".format(dbl2singleStr(message.content))
-    data += u"시간: {}\n".format(timestring)
-    data += u"---------------\n"
-    f.write(data)
+    data  = {}
+    data["이름"] = dbl2singleStr(name)
+    data["채널"] = dbl2singleStr(message.channel.name)
+    data["내용"] = dbl2singleStr(message.content)
+    data["시간"] = dbl2singleStr(timestring)
+    msg_list.append(data)
+
+    json_dict = {"msg_list":msg_list}
+    
+    with open("../data/record.json", "w", encoding="utf-8") as records:
+        json.dump(json_dict, records)
 
     # channel = message.channel
     # if message.content.startswith('!채널설정'): 
     #     await channel.send('어디에 여러분의 채팅을 기록할까요?') 
     # else: 
     #     await channel.send("<@"+str(id)+">님이 \""+message.content+"\"라고 말하였습니다.")
-    f.close()
 client.run(token)
